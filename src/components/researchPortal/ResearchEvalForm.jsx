@@ -2,61 +2,6 @@ import React, { useEffect, useRef, useState } from "react";
 import "./ResearchEvalForm.css";
 import { lookupAPI } from "../../services/api";
 
-// ── Mock Data ─────────────────────────────────────────────────────────────────
-
-const MOCK_CAMPUSES = [
-  { value: "1", label: "Main Campus" },
-  { value: "2", label: "North Campus" },
-  { value: "3", label: "South Campus" },
-];
-const MOCK_SCHOOL_YEARS = [
-  { value: "1", label: "2022–2023" },
-  { value: "2", label: "2023–2024" },
-  { value: "3", label: "2024–2025" },
-  { value: "4", label: "2025–2026" },
-];
-const MOCK_SEMESTERS = [
-  { value: "1", label: "1st Semester" },
-  { value: "2", label: "2nd Semester" },
-  { value: "3", label: "Summer" },
-];
-const MOCK_COLLEGES = [
-  { value: "1", label: "College of Engineering" },
-  { value: "2", label: "College of Science" },
-  { value: "3", label: "College of Arts & Humanities" },
-  { value: "4", label: "College of Business Administration" },
-  { value: "5", label: "College of Education" },
-];
-const MOCK_DEPARTMENTS = {
-  "1": [
-    { value: "101", label: "Computer Engineering" },
-    { value: "102", label: "Civil Engineering" },
-    { value: "103", label: "Electrical Engineering" },
-    { value: "104", label: "Mechanical Engineering" },
-  ],
-  "2": [
-    { value: "201", label: "Biology" },
-    { value: "202", label: "Chemistry" },
-    { value: "203", label: "Physics" },
-    { value: "204", label: "Mathematics" },
-  ],
-  "3": [
-    { value: "301", label: "Communication Arts" },
-    { value: "302", label: "English Language Studies" },
-    { value: "303", label: "Filipino Studies" },
-  ],
-  "4": [
-    { value: "401", label: "Business Management" },
-    { value: "402", label: "Accountancy" },
-    { value: "403", label: "Marketing Management" },
-  ],
-  "5": [
-    { value: "501", label: "Elementary Education" },
-    { value: "502", label: "Secondary Education" },
-    { value: "503", label: "Special Education" },
-  ],
-};
-
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const ACCEPTED = ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png";
@@ -161,6 +106,50 @@ function Section({ title, children }) {
       <div className="ref-section-title">{title}</div>
       <div className="ref-section-body">{children}</div>
     </div>
+  );
+}
+
+function PortalSidebar({ onNavigate, activePage }) {
+  const navItem = (page, icon, label) => {
+    const isActive = activePage === page;
+    return (
+      <button
+        type="button"
+        onClick={() => onNavigate?.(page)}
+        className={`ref-side-item${isActive ? " active" : ""}`}
+      >
+        <span className="ref-side-icon">{icon}</span>
+        {label}
+        {isActive && <span className="ref-side-dot" />}
+      </button>
+    );
+  };
+
+  const sectionLabel = (text) => <div className="ref-side-label">{text}</div>;
+
+  return (
+    <aside className="ref-sidebar">
+      <div className="ref-sidebar-brand">
+        <div className="ref-sidebar-brand-mini">TIP – Scholar Sphere</div>
+        <div className="ref-sidebar-brand-main">Research<br />Portal</div>
+      </div>
+
+      <nav className="ref-sidebar-nav">
+        {sectionLabel("Research Evaluation")}
+        {navItem("eval-form", "📄", "Submit Evaluation")}
+        {navItem("eval-dashboard", "📋", "Evaluation Records")}
+        {navItem("tracking", "📍", "Tracking")}
+
+        {sectionLabel("Research Database")}
+        {navItem("db-form", "📄", "Submit Research")}
+        {navItem("db-dashboard", "📋", "Research Records")}
+
+        {sectionLabel("Navigation")}
+        {navItem("home", "←", "Back to Home")}
+      </nav>
+
+      <div className="ref-sidebar-footer">Scholar Sphere v1.0</div>
+    </aside>
   );
 }
 
@@ -385,28 +374,51 @@ const ResearchEvalForm = ({ onNavigate }) => {
   // ── Load dropdowns from backend ──────────────────────────────────────────
   useEffect(() => {
     const loadInitialLookups = async () => {
-      try {
-        setDropdownsLoading(true);
-        setDropdownError("");
+      setDropdownsLoading(true);
+      setDropdownError("");
 
-        const [campusesData, schoolYearsData, semestersData] = await Promise.all([
-          lookupAPI.getCampuses(),
-          lookupAPI.getSchoolYears(),
-          lookupAPI.getSemesters(),
-        ]);
+      const [campusesResult, schoolYearsResult, semestersResult] = await Promise.allSettled([
+        lookupAPI.getCampuses(),
+        lookupAPI.getSchoolYears(),
+        lookupAPI.getSemesters(),
+      ]);
 
-        setCampuses(toOptions(campusesData));
-        setSchoolYears(toOptions(schoolYearsData));
-        setSemesters(toOptions(semestersData));
-      } catch (error) {
-        console.error("Failed to load research evaluation dropdowns:", error);
+      const failures = [];
+
+      if (campusesResult.status === "fulfilled") {
+        setCampuses(toOptions(campusesResult.value));
+      } else {
         setCampuses([]);
-        setSchoolYears([]);
-        setSemesters([]);
-        setDropdownError("Failed to load dropdown data from the database. Please check backend connection.");
-      } finally {
-        setDropdownsLoading(false);
+        failures.push(campusesResult.reason?.message || "campuses");
       }
+
+      if (schoolYearsResult.status === "fulfilled") {
+        setSchoolYears(toOptions(schoolYearsResult.value));
+      } else {
+        setSchoolYears([]);
+        failures.push(schoolYearsResult.reason?.message || "school years");
+      }
+
+      if (semestersResult.status === "fulfilled") {
+        setSemesters(toOptions(semestersResult.value));
+      } else {
+        setSemesters([]);
+        failures.push(semestersResult.reason?.message || "semesters");
+      }
+
+      if (failures.length > 0) {
+        console.error("Failed to load some research evaluation dropdowns:", failures);
+        const normalized = failures.join(" ").toLowerCase();
+        if (normalized.includes("failed to fetch") || normalized.includes("cors")) {
+          setDropdownError("Failed to load some dropdowns due to CORS/network policy on backend. Please allow origin http://localhost:5173.");
+        } else if (normalized.includes("not authenticated") || normalized.includes("invalid token") || normalized.includes("session expired")) {
+          setDropdownError("Some dropdowns require authenticated access. Please log in again or ask backend to make the lookup endpoint public.");
+        } else {
+          setDropdownError("Some dropdown data failed to load from backend.");
+        }
+      }
+
+      setDropdownsLoading(false);
     };
 
     loadInitialLookups();
@@ -522,6 +534,9 @@ const ResearchEvalForm = ({ onNavigate }) => {
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="ref-root">
+      <div className="ref-layout">
+        <PortalSidebar onNavigate={onNavigate} activePage="eval-form" />
+        <main className="ref-main">
 
       {/* ── Page Header ── */}
       <div className="ref-header">
@@ -529,8 +544,8 @@ const ResearchEvalForm = ({ onNavigate }) => {
           <div className="ref-header-eyebrow">Research Evaluation</div>
           <h1>Application For Research Evaluation</h1>
         </div>
-        <button className="ref-header-action" onClick={() => onNavigate?.("home")}>
-          ← Return
+        <button className="ref-header-action" onClick={() => onNavigate?.("eval-dashboard")}>
+          View Records →
         </button>
       </div>
 
@@ -754,6 +769,8 @@ const ResearchEvalForm = ({ onNavigate }) => {
           )}
         </div>
 
+      </div>
+        </main>
       </div>
     </div>
   );

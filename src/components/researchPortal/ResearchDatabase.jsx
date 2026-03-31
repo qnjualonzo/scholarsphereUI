@@ -2,19 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import "./ResearchDatabase.css";
 import { lookupAPI } from "../../services/api";
 
-// ── Mock Data ─────────────────────────────────────────────────────────────────
+// ── Mock Data (School Years and Semesters loaded from API) ────────────────────
 
-const MOCK_SCHOOL_YEARS = [
-  { value: "1", label: "2022–2023" },
-  { value: "2", label: "2023–2024" },
-  { value: "3", label: "2024–2025" },
-  { value: "4", label: "2025–2026" },
-];
-const MOCK_SEMESTERS = [
-  { value: "1", label: "1st Semester" },
-  { value: "2", label: "2nd Semester" },
-  { value: "3", label: "Summer" },
-];
 const MOCK_OUTPUT_TYPES = [
   { value: "Local Presentation",         label: "Local Presentation" },
   { value: "International Presentation", label: "International Presentation" },
@@ -36,42 +25,6 @@ const MOCK_INDEXINGS = [
   { value: "5", label: "Google Scholar" },
   { value: "6", label: "EBSCO" },
 ];
-const MOCK_COLLEGES = [
-  { value: "1", label: "College of Engineering" },
-  { value: "2", label: "College of Science" },
-  { value: "3", label: "College of Arts & Humanities" },
-  { value: "4", label: "College of Business Administration" },
-  { value: "5", label: "College of Education" },
-];
-const MOCK_DEPARTMENTS = {
-  "1": [
-    { value: "101", label: "Computer Engineering" },
-    { value: "102", label: "Civil Engineering" },
-    { value: "103", label: "Electrical Engineering" },
-    { value: "104", label: "Mechanical Engineering" },
-  ],
-  "2": [
-    { value: "201", label: "Biology" },
-    { value: "202", label: "Chemistry" },
-    { value: "203", label: "Physics" },
-    { value: "204", label: "Mathematics" },
-  ],
-  "3": [
-    { value: "301", label: "Communication Arts" },
-    { value: "302", label: "English Language Studies" },
-    { value: "303", label: "Filipino Studies" },
-  ],
-  "4": [
-    { value: "401", label: "Business Management" },
-    { value: "402", label: "Accountancy" },
-    { value: "403", label: "Marketing Management" },
-  ],
-  "5": [
-    { value: "501", label: "Elementary Education" },
-    { value: "502", label: "Secondary Education" },
-    { value: "503", label: "Special Education" },
-  ],
-};
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -170,6 +123,50 @@ function Card({ title, children }) {
       <div className="rdb-card-title">{title}</div>
       <div className="rdb-card-body">{children}</div>
     </div>
+  );
+}
+
+function PortalSidebar({ onNavigate, activePage }) {
+  const navItem = (page, icon, label) => {
+    const isActive = activePage === page;
+    return (
+      <button
+        type="button"
+        onClick={() => onNavigate?.(page)}
+        className={`rdb-side-item${isActive ? " active" : ""}`}
+      >
+        <span className="rdb-side-icon">{icon}</span>
+        {label}
+        {isActive && <span className="rdb-side-dot" />}
+      </button>
+    );
+  };
+
+  const sectionLabel = (text) => <div className="rdb-side-label">{text}</div>;
+
+  return (
+    <aside className="rdb-sidebar">
+      <div className="rdb-sidebar-brand">
+        <div className="rdb-sidebar-brand-mini">TIP – Scholar Sphere</div>
+        <div className="rdb-sidebar-brand-main">Research<br />Portal</div>
+      </div>
+
+      <nav className="rdb-sidebar-nav">
+        {sectionLabel("Navigation")}
+        {navItem("home", "←", "Back to Home")}
+
+        {sectionLabel("Research Evaluation")}
+        {navItem("eval-form", "📄", "Submit Evaluation")}
+        {navItem("eval-dashboard", "📋", "Evaluation Records")}
+        {navItem("tracking", "📍", "Tracking")}
+
+        {sectionLabel("Research Database")}
+        {navItem("db-form", "📄", "Submit Research")}
+        {navItem("db-dashboard", "📋", "Research Records")}
+      </nav>
+
+      <div className="rdb-sidebar-footer">Scholar Sphere v1.0</div>
+    </aside>
   );
 }
 
@@ -420,31 +417,54 @@ export default function ResearchDatabase({ onNavigate }) {
   // ── Load dropdowns from backend + static option sets ────────────────────
   useEffect(() => {
     const loadLookups = async () => {
-      try {
-        setDropdownsLoading(true);
-        setDropdownError("");
+      setDropdownsLoading(true);
+      setDropdownError("");
 
-        const [schoolYearsData, semestersData, collegesData] = await Promise.all([
-          lookupAPI.getSchoolYears(),
-          lookupAPI.getSemesters(),
-          lookupAPI.getColleges(),
-        ]);
+      const [schoolYearsResult, semestersResult, collegesResult] = await Promise.allSettled([
+        lookupAPI.getSchoolYears(),
+        lookupAPI.getSemesters(),
+        lookupAPI.getColleges(),
+      ]);
 
-        setSchoolYears(toOptions(schoolYearsData));
-        setSemesters(toOptions(semestersData));
-        setColleges(toOptions(collegesData));
-      } catch (error) {
-        console.error("Failed to load research database dropdowns:", error);
+      const failures = [];
+
+      if (schoolYearsResult.status === "fulfilled") {
+        setSchoolYears(toOptions(schoolYearsResult.value));
+      } else {
         setSchoolYears([]);
-        setSemesters([]);
-        setColleges([]);
-        setDropdownError("Failed to load dropdown data from the database. Please check backend connection.");
-      } finally {
-        setOutputTypes(MOCK_OUTPUT_TYPES);
-        setResearchTypes(MOCK_RESEARCH_TYPES);
-        setIndexings(MOCK_INDEXINGS);
-        setDropdownsLoading(false);
+        failures.push(schoolYearsResult.reason?.message || "school years");
       }
+
+      if (semestersResult.status === "fulfilled") {
+        setSemesters(toOptions(semestersResult.value));
+      } else {
+        setSemesters([]);
+        failures.push(semestersResult.reason?.message || "semesters");
+      }
+
+      if (collegesResult.status === "fulfilled") {
+        setColleges(toOptions(collegesResult.value));
+      } else {
+        setColleges([]);
+        failures.push(collegesResult.reason?.message || "colleges");
+      }
+
+      if (failures.length > 0) {
+        console.error("Failed to load some research database dropdowns:", failures);
+        const normalized = failures.join(" ").toLowerCase();
+        if (normalized.includes("failed to fetch") || normalized.includes("cors")) {
+          setDropdownError("Failed to load some dropdowns due to CORS/network policy on backend. Please allow origin http://localhost:5173.");
+        } else if (normalized.includes("not authenticated") || normalized.includes("invalid token") || normalized.includes("session expired")) {
+          setDropdownError("Some dropdowns require authenticated access. Please log in again or ask backend to make the lookup endpoint public.");
+        } else {
+          setDropdownError("Some dropdown data failed to load from backend.");
+        }
+      }
+
+      setOutputTypes(MOCK_OUTPUT_TYPES);
+      setResearchTypes(MOCK_RESEARCH_TYPES);
+      setIndexings(MOCK_INDEXINGS);
+      setDropdownsLoading(false);
     };
 
     loadLookups();
@@ -537,6 +557,9 @@ export default function ResearchDatabase({ onNavigate }) {
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="rdb-root">
+      <div className="rdb-layout">
+        <PortalSidebar onNavigate={onNavigate} activePage="db-form" />
+        <main className="rdb-main">
 
       {/* ── Header ── */}
       <div className="rdb-header">
@@ -544,8 +567,8 @@ export default function ResearchDatabase({ onNavigate }) {
           <div className="rdb-header-eyebrow">Research Database</div>
           <h1>Submit Research Database Record</h1>
         </div>
-        <button type="button" className="rdb-header-action" onClick={() => onNavigate?.("home")}>
-          ← Return
+        <button type="button" className="rdb-header-action" onClick={() => onNavigate?.("db-dashboard")}>
+          View Records →
         </button>
       </div>
 
@@ -961,6 +984,8 @@ export default function ResearchDatabase({ onNavigate }) {
           )}
         </div>
 
+      </div>
+        </main>
       </div>
     </div>
   );

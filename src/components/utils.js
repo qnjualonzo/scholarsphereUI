@@ -44,8 +44,8 @@ export function initializeGlobalStyles() {
     tr:hover td { background-color: #fffcf2 !important; }
     select { -webkit-appearance: none; -moz-appearance: none; appearance: none; }
     .settingsBtn:hover { background-color: #f5f5f5 !important; }
-    .overlay-panel { animation: modalIn 0.22s ease; }
-    @keyframes modalIn { from { opacity: 0; transform: translateY(8px) scale(0.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    .overlay-panel { animation: slideIn 0.25s ease; }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
   `;
   document.head.appendChild(_style);
 }

@@ -53,22 +53,21 @@ export const S = {
   homeStatLabel:  { fontSize: '12px', color: '#888', fontFamily: 'Georgia, serif', marginTop: '4px' },
 
   // SETTINGS BUTTON
-  settingsBtn:    { display: 'flex', alignItems: 'center', gap: '8px', minHeight: '40px', padding: '9px 16px', background: '#fffdf6', color: '#1a1a1a', border: '1px solid #d4a017', borderRadius: '10px', cursor: 'pointer', fontFamily: 'Georgia, serif', transition: 'all 0.15s ease', boxShadow: '0 2px 8px rgba(212,160,23,0.12)' },
+  settingsBtn:    { display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 18px', background: '#ffffff', color: '#1a1a1a', border: '1px solid #d4a017', borderRadius: '8px', cursor: 'pointer', fontFamily: 'Georgia, serif', transition: 'background 0.15s' },
 
   // OVERLAY PANEL
-  overlayBackdrop:{ position: 'fixed', inset: 0, background: 'rgba(8, 8, 8, 0.42)', backdropFilter: 'blur(2px)', zIndex: 9500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' },
-  overlayPanel:   { position: 'relative', width: 'min(980px, calc(100vw - 48px))', height: 'min(620px, calc(100vh - 56px))', background: '#fff', border: '1px solid #e0d8c8', borderRadius: '16px', boxShadow: '0 20px 55px rgba(0,0,0,0.24)', zIndex: 9999, overflow: 'hidden', display: 'flex', flexDirection: 'column' },
-  panelHeader:    { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', backgroundColor: '#1a1a1a', borderBottom: '1px solid #333', flexShrink: 0, minHeight: '54px' },
+  overlayPanel:   { position: 'absolute', top: 'calc(100% + 10px)', right: 0, width: '820px', height: '560px', background: '#fff', border: '1px solid #e0d8c8', borderRadius: '14px', boxShadow: '0 12px 40px rgba(0,0,0,0.18)', zIndex: 9999, overflow: 'hidden', display: 'flex', flexDirection: 'column' },
+  panelHeader:    { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', backgroundColor: '#1a1a1a', borderBottom: '1px solid #333', flexShrink: 0 },
   panelTitle:     { fontSize: '14px', fontWeight: '700', color: '#d4a017', fontFamily: 'Georgia, serif', letterSpacing: '0.4px' },
-  closeBtn:       { background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: '#bdbdbd', cursor: 'pointer', fontSize: '16px', fontWeight: '700', lineHeight: 1, width: '30px', height: '30px', borderRadius: '7px' },
-  panelSidebar:   { width: '210px', minWidth: '210px', background: 'rgba(255,255,255,1)', padding: '18px 12px', display: 'flex', flexDirection: 'column', gap: '4px', borderRight: '1px solid #e8e2d4', overflowY: 'auto' },
-  panelMain:      { flex: 1, overflowY: 'auto', padding: '24px 24px 20px' },
+  closeBtn:       { background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: '16px', fontWeight: '700', lineHeight: 1, padding: '2px 6px' },
+  panelSidebar:   { width: '180px', minWidth: '180px', background: 'rgba(255,255,255,1)', padding: '18px 10px', display: 'flex', flexDirection: 'column', gap: '4px', borderRight: '1px solid #e8e2d4', overflowY: 'auto' },
+  panelMain:      { flex: 1, overflowY: 'auto', padding: '20px 24px' },
   panelCardHeadingRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' },
   panelLogoutBtn: { width: '100%', padding: '9px 13px', background: 'transparent', border: '1px solid #d4a017', borderRadius: '7px', cursor: 'pointer', color: '#b8860b', fontWeight: '700', fontSize: '12px', fontFamily: 'Georgia, serif', textAlign: 'center' },
 
   // DASHBOARD SHARED
   sideTitle:      { fontSize: '13px', fontWeight: '800', color: '#2a2a2a', marginBottom: '12px', fontFamily: 'Georgia, serif', letterSpacing: '0.4px' },
-  sideBtn:        { textAlign: 'left', padding: '10px 12px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '12px', fontFamily: 'Georgia, serif', transition: 'all 0.18s' },
+  sideBtn:        { textAlign: 'left', padding: '9px 11px', borderRadius: '7px', cursor: 'pointer', fontWeight: '600', fontSize: '12px', fontFamily: 'Georgia, serif', transition: 'all 0.18s' },
   cardHeading:    { fontSize: '13px', color: '#2a2a2a', fontWeight: '800', fontFamily: 'Georgia, serif', margin: 0, letterSpacing: '0.4px' },
   sysViewBtn:     { background: '#2a2a2a', color: '#d4a017', border: 'none', padding: '6px 16px', borderRadius: '20px', fontSize: '11px', cursor: 'pointer', fontFamily: 'Georgia, serif', fontWeight: '700', letterSpacing: '0.4px' },
 

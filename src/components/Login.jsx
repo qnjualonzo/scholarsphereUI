@@ -3,21 +3,18 @@ import { LandingPage } from './pages/LandingPage';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
 import { HomePage } from './pages/HomePage';
-import { ResearchPortal } from './researchPortal/ResearchPortal';
 import { VIEW_STORAGE_KEY, PROTECTED_VIEWS, BACKGROUND_IMAGES } from './constants';
 import { initializeGlobalStyles } from './utils';
 
 // Initialize global styles
 initializeGlobalStyles();
+console.log('Global styles initialized')
 
 export default function App() {
+  console.log('Login component rendering, initializing state...')
   const [view, setView] = useState(() => {
     const token = localStorage.getItem('authToken');
     const savedView = localStorage.getItem(VIEW_STORAGE_KEY);
-
-    if (savedView === 'researchPortal') {
-      return token ? 'researchEvaluation' : 'landing';
-    }
 
     if (savedView) {
       if (PROTECTED_VIEWS.has(savedView)) {
@@ -28,21 +25,12 @@ export default function App() {
 
     return token ? 'home' : 'landing';
   });
+  console.log('Current view:', view)
 
   // Save view to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem(VIEW_STORAGE_KEY, view);
   }, [view]);
-
-  useEffect(() => {
-    const handleAuthExpired = () => {
-      localStorage.setItem(VIEW_STORAGE_KEY, 'landing');
-      setView('landing');
-    };
-
-    window.addEventListener('scholarSphere:authExpired', handleAuthExpired);
-    return () => window.removeEventListener('scholarSphere:authExpired', handleAuthExpired);
-  }, []);
 
   // Navigation handlers
   const handleLogoNavigation = () => {
@@ -67,6 +55,7 @@ export default function App() {
 
   // Render views
   if (view === 'landing') {
+    console.log('Rendering LandingPage with logo:', logo)
     return (
       <LandingPage
         onLogoClick={handleLogoNavigation}
@@ -104,21 +93,8 @@ export default function App() {
         onLogout={handleLogout}
         logo={BACKGROUND_IMAGES.logo}
         onLogoClick={handleLogoNavigation}
-        onOpenResearchPortal={(target) => setView(target === 'db' ? 'researchDatabase' : 'researchEvaluation')}
       />
     );
-  }
-
-  if (view === 'researchEvaluation') {
-    return <ResearchPortal initialPage="eval" onExit={() => setView('home')} />;
-  }
-
-  if (view === 'researchDatabase') {
-    return <ResearchPortal initialPage="db" onExit={() => setView('home')} />;
-  }
-
-  if (view === 'researchPortal') {
-    return <ResearchPortal initialPage="eval" onExit={() => setView('home')} />;
   }
 
   return null;

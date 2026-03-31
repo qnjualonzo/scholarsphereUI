@@ -22,10 +22,6 @@ export function LoginPage({ onLogoClick, onSignupClick, onLoginSuccess, logo }) 
     authError, setAuthError,
     loginLoading,
     handleLogin,
-    createTestAccount,
-    useTestAccountLogin,
-    deleteTestAccount,
-    testAccount,
   } = useLoginForm(onLoginSuccess);
 
   const handleKeyDown = (e) => {
@@ -61,29 +57,6 @@ export function LoginPage({ onLogoClick, onSignupClick, onLoginSuccess, logo }) 
               >
                 {loginLoading ? 'Logging in...' : 'Login'}
               </button>
-
-              <div style={{ border: '1px dashed #d4a017', borderRadius: '6px', padding: '10px', background: '#fffdf6' }}>
-                <p style={{ ...S.switchText, marginBottom: '8px' }}>
-                  Need quick access? Use a disposable testing account.
-                </p>
-                {testAccount && (
-                  <p style={{ ...S.switchText, marginBottom: '8px' }}>
-                    Account: <strong>{testAccount.email}</strong>
-                  </p>
-                )}
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                  <button type="button" style={{ ...S.submitBtn, width: 'auto', padding: '8px 12px', background: '#2e7d32' }} onClick={createTestAccount}>
-                    Create Test Account
-                  </button>
-                  <button type="button" style={{ ...S.submitBtn, width: 'auto', padding: '8px 12px', background: '#1565c0' }} onClick={useTestAccountLogin}>
-                    Use Test Account
-                  </button>
-                  <button type="button" style={{ ...S.submitBtn, width: 'auto', padding: '8px 12px', background: '#c62828' }} onClick={deleteTestAccount}>
-                    Delete Test Account
-                  </button>
-                </div>
-              </div>
-
               <p style={S.switchText}>
                 Don't have an account?{' '}
                 <span onClick={() => { setAuthError(''); onSignupClick?.(); }} style={S.switchLink}>Sign Up</span>
