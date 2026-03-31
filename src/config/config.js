@@ -1,4 +1,5 @@
 // Configuration file for API settings
+export const config = {
   API_BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000' || 'https://firmamental-unicameral-kane.ngrok-free.dev',
 
   // API endpoints
@@ -9,11 +10,11 @@
       me: '/auth/me',
     },
     lookups: {
-      departments: '/lookups/departments',
-      colleges: '/lookups/colleges',
-      campuses: '/lookups/campuses',
-      schoolYears: '/lookups/school-years',
-      semesters: '/lookups/semesters',
+      departments: '/department/',
+      colleges: '/college/',
+      campuses: '/campus/',
+      schoolYears: '/schoolyear/',
+      semesters: '/semester/',
     },
     users: {
       me: '/auth/me',
