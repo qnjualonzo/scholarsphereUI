@@ -9,19 +9,29 @@ import { initializeGlobalStyles } from './components/utils';
 // Initialize global styles
 initializeGlobalStyles();
 
+
 export default function App() {
+  const validViews = ['landing', 'login', 'signup', 'home'];
   const [view, setView] = useState(() => {
     const token = localStorage.getItem('authToken');
     const savedView = localStorage.getItem(VIEW_STORAGE_KEY);
 
+    let initialView;
     if (savedView) {
       if (PROTECTED_VIEWS.has(savedView)) {
-        return token ? savedView : 'landing';
+        initialView = token ? savedView : 'landing';
+      } else {
+        initialView = savedView;
       }
-      return savedView;
+    } else {
+      initialView = token ? 'home' : 'landing';
     }
-
-    return token ? 'home' : 'landing';
+    // Fallback: if not valid, use 'landing'
+    if (!validViews.includes(initialView)) {
+      localStorage.setItem(VIEW_STORAGE_KEY, 'landing');
+      return 'landing';
+    }
+    return initialView;
   });
 
   useEffect(() => {

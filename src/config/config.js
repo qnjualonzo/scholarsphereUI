@@ -1,6 +1,5 @@
 // Configuration file for API settings
-export const config = {
-  API_BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://10.3.35.209:8000',
+  API_BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000' || 'https://firmamental-unicameral-kane.ngrok-free.dev',
 
   // API endpoints
   endpoints: {

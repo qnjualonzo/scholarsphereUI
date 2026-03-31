@@ -1,3 +1,30 @@
+// Campus API
+export const campusAPI = {
+  getAll: async () => apiRequest('/campus/'),
+  get: async (id) => apiRequest(`/campus/${id}`),
+  create: async (data) => apiRequest('/campus/', { method: 'POST', body: JSON.stringify(data) }),
+};
+
+// College API
+export const collegeAPI = {
+  getAll: async () => apiRequest('/college/'),
+  get: async (id) => apiRequest(`/college/${id}`),
+  create: async (data) => apiRequest('/college/', { method: 'POST', body: JSON.stringify(data) }),
+};
+
+// Department API
+export const departmentAPI = {
+  getAll: async () => apiRequest('/department/'),
+  get: async (id) => apiRequest(`/department/${id}`),
+  create: async (data) => apiRequest('/department/', { method: 'POST', body: JSON.stringify(data) }),
+};
+
+// Role API
+export const roleAPI = {
+  getAll: async () => apiRequest('/role/'),
+  get: async (id) => apiRequest(`/role/${id}`),
+  create: async (data) => apiRequest('/role/', { method: 'POST', body: JSON.stringify(data) }),
+};
 // API Configuration and Service Functions
 import { config } from '../config/config.js';
 

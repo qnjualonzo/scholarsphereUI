@@ -24,6 +24,13 @@ export function LoginPage({ onLogoClick, onSignupClick, onLoginSuccess, logo }) 
     handleLogin,
   } = useLoginForm(onLoginSuccess);
 
+  // DEV LOGIN: For frontend testing only
+  const handleDevLogin = () => {
+    localStorage.setItem('authToken', 'dev-token');
+    localStorage.setItem('user', JSON.stringify({ email: 'devuser@example.com', name: 'Dev User' }));
+    if (onLoginSuccess) onLoginSuccess();
+  };
+
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
