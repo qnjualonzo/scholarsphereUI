@@ -3,10 +3,28 @@ import { config } from '../config/config.js';
 
 const API_BASE_URL = config.API_BASE_URL;
 
+const isAuthErrorMessage = (message = '') => {
+  const normalized = String(message).toLowerCase();
+  return normalized.includes('not authenticated') || normalized.includes('unauthorized') || normalized.includes('401');
+};
+
+const PUBLIC_LOOKUP_PREFIXES = [
+  config.endpoints.lookups.campuses,
+  config.endpoints.lookups.colleges,
+  config.endpoints.lookups.departments,
+];
+
+const isPublicLookupEndpoint = (endpoint = '') => {
+  return PUBLIC_LOOKUP_PREFIXES.some((prefix) => endpoint.startsWith(prefix));
+};
+
 // API utility function for making requests
-const apiRequest = async (endpoint, options = {}) => {
+const apiRequest = async (endpoint, options = {}, requireAuth = true) => {
   const url = `${API_BASE_URL}${endpoint}`;
-  const config_headers = {
+  const shouldUseAuth = requireAuth && !isPublicLookupEndpoint(endpoint);
+  let usedAuthHeader = false;
+
+  const requestConfig = {
     headers: {
       'Content-Type': 'application/json',
       ...options.headers,
@@ -14,14 +32,19 @@ const apiRequest = async (endpoint, options = {}) => {
     ...options,
   };
 
-  // Add authorization header if token exists
-  const token = localStorage.getItem(config.tokenKey);
-  if (token) {
-    config_headers.headers.Authorization = `Bearer ${token}`;
+  if (shouldUseAuth) {
+    const token = localStorage.getItem(config.tokenKey);
+    if (token) {
+      requestConfig.headers.Authorization = `Bearer ${token}`;
+      usedAuthHeader = true;
+    }
+  } else {
+    // Hard guarantee: public endpoints must never send Authorization.
+    delete requestConfig.headers.Authorization;
   }
 
   try {
-    const response = await fetch(url, config_headers);
+    const response = await fetch(url, requestConfig);
     
     // Handle cases where response is not JSON (e.g., network errors)
     let data;
@@ -84,12 +107,26 @@ const apiRequest = async (endpoint, options = {}) => {
         errorMessage = `HTTP error! status: ${response.status} ${response.statusText}`;
       }
       
+      const normalizedError = String(errorMessage || '').toLowerCase();
+      const isInvalidAuth = normalizedError.includes('invalid token') || normalizedError.includes('not authenticated') || normalizedError.includes('unauthorized');
+
+      if (response.status === 401 && shouldUseAuth && usedAuthHeader && isInvalidAuth) {
+        localStorage.removeItem(config.tokenKey);
+        localStorage.removeItem(config.userKey);
+        throw new Error('Session expired. Please log in again.');
+      }
+
       throw new Error(errorMessage);
     }
 
     return data;
   } catch (error) {
-    console.error(`API request failed for ${endpoint}:`, error);
+    const isPublicLookupAuthFailure = endpoint.startsWith('/lookups') && !requireAuth && isAuthErrorMessage(error?.message);
+
+    if (!isPublicLookupAuthFailure) {
+      console.error(`API request failed for ${endpoint}:`, error);
+    }
+
     // If it's already our custom error, throw it as-is
     if (error.message) {
       throw error;
@@ -129,33 +166,33 @@ export const authAPI = {
 // Lookup/Dropdown APIs
 export const lookupAPI = {
   getCampuses: async () => {
-    const response = await apiRequest(config.endpoints.lookups.campuses);
-    return response;
+    return await apiRequest(config.endpoints.lookups.campuses, {}, false);
   },
 
   getDepartments: async () => {
-    const response = await apiRequest(config.endpoints.lookups.departments);
-    return response;
+    return await apiRequest(config.endpoints.lookups.departments, {}, false);
+  },
+
+  getCollegesByCampus: async (campusId) => {
+    const endpoint = `${config.endpoints.lookups.colleges}?campus_id=${campusId}`;
+    return await apiRequest(endpoint, {}, false);
   },
 
   getDepartmentsByCollege: async (collegeId) => {
-    const response = await apiRequest(`${config.endpoints.lookups.departments}?college_id=${collegeId}`);
-    return response;
+    const endpoint = `${config.endpoints.lookups.departments}?college_id=${collegeId}`;
+    return await apiRequest(endpoint, {}, false);
   },
 
-  getColleges: async () => {    // Changed from 'getRoles' to 'getColleges'
-    const response = await apiRequest(config.endpoints.lookups.colleges);
-    return response;
+  getColleges: async () => {
+    return await apiRequest(config.endpoints.lookups.colleges, {}, false);
   },
 
   getSchoolYears: async () => {
-    const response = await apiRequest(config.endpoints.lookups.schoolYears);
-    return response;
+    return await apiRequest(config.endpoints.lookups.schoolYears, {}, true);
   },
 
   getSemesters: async () => {
-    const response = await apiRequest(config.endpoints.lookups.semesters);
-    return response;
+    return await apiRequest(config.endpoints.lookups.semesters, {}, true);
   },
 };
 
