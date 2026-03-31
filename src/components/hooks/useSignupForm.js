@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { authAPI, lookupAPI } from '../../services/api.js';
 import { getErrorMessage } from '../utils.js';
 
@@ -20,38 +20,56 @@ export function useSignupForm(onSuccess) {
   const [loading, setLoading] = useState(true);
   const [dropdownError, setDropdownError] = useState('');
 
+  // Load campuses on component mount
+  useEffect(() => {
+    const initializeLookups = async () => {
+      setLoading(true);
+      try {
+        const campusData = await lookupAPI.getCampuses();
+        setCampuses(campusData || []);
+        setDropdownError('');
+      } catch (error) {
+        console.error('Failed to load campuses:', error);
+        setDropdownError('Unable to load campus data. Please refresh the page.');
+        setCampuses([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeLookups();
+  }, []);
+
   const handleCampusChange = async (campusId) => {
-    setDropdownError('');
     setCampus(campusId);
     setCollege('');
     setDept('');
     setFilteredColleges([]);
     setFilteredDepartments([]);
-    
+
     if (campusId) {
       try {
         const collegesData = await lookupAPI.getCollegesByCampus(campusId);
-        setFilteredColleges(collegesData);
+        setFilteredColleges(collegesData || []);
       } catch (error) {
+        console.error('Failed to fetch colleges for campus:', error);
         setFilteredColleges([]);
-        setDropdownError(error?.message || 'Unable to load colleges for the selected campus.');
       }
     }
   };
 
   const handleCollegeChange = async (collegeId) => {
-    setDropdownError('');
     setCollege(collegeId);
     setDept('');
     setFilteredDepartments([]);
-    
+
     if (collegeId) {
       try {
         const departmentsData = await lookupAPI.getDepartmentsByCollege(collegeId);
-        setFilteredDepartments(departmentsData);
+        setFilteredDepartments(departmentsData || []);
       } catch (error) {
+        console.error('Failed to fetch departments for college:', error);
         setFilteredDepartments([]);
-        setDropdownError(error?.message || 'Unable to load departments for the selected college.');
       }
     }
   };
@@ -61,29 +79,29 @@ export function useSignupForm(onSuccess) {
       setSignupError('Required data is not available. Please ensure the backend API is running.');
       return false;
     }
-    
+
     if (!campus) {
       setSignupError('Please select a campus first.');
       return false;
     }
-    
+
     if (!college || filteredColleges.length === 0) {
       setSignupError('Please select a college.');
       return false;
     }
-    
-    if (!dept) {
-      setSignupError('Please select a department.');
+
+    if (!college || filteredDepartments.length === 0) {
+      setSignupError('Please select a college first, then select a department.');
       return false;
     }
-    
-    if (!firstName.trim() || !lastName.trim() || !signupEmail.trim() || !signupPass || !dept || !college || !campus) { 
-      setSignupError('Please fill in all required fields.'); 
+
+    if (!firstName.trim() || !lastName.trim() || !signupEmail.trim() || !signupPass || !dept || !college || !campus) {
+      setSignupError('Please fill in all required fields.');
       return false;
     }
-    
-    if (signupPass !== repeatPass) { 
-      setSignupError('Passwords do not match!'); 
+
+    if (signupPass !== repeatPass) {
+      setSignupError('Passwords do not match!');
       return false;
     }
 
@@ -92,7 +110,7 @@ export function useSignupForm(onSuccess) {
 
   const handleSignup = async () => {
     setSignupError('');
-    
+
     if (!validateForm()) return;
 
     try {
@@ -109,7 +127,7 @@ export function useSignupForm(onSuccess) {
 
       await authAPI.signup(userData);
       alert('Registration successful! You can now log in.');
-      
+
       // Clear form
       setFirstName('');
       setMiddleInitial('');
@@ -120,9 +138,9 @@ export function useSignupForm(onSuccess) {
       setDept('');
       setCollege('');
       setCampus('');
-      
+
       onSuccess?.();
-      
+
     } catch (error) {
       console.error('Registration failed:', error);
       const userMessage = getErrorMessage(error, 'signup');
